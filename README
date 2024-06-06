@@ -1,0 +1,41 @@
+Omega -- Operations on Presburger arithmetic formulae
+
+This package contains a reduced copy of the Omega library.
+The Omega library's home page is http://www.cs.umd.edu/projects/omega/, and
+its full sources are at http://github.com/davewathaverford/the-omega-project/.
+
+BUILDING INSTRUCTIONS
+---------------------
+
+This is a Cabal package.  The typical build process is:
+
+	runhaskell Setup.hs configure <FLAGS>
+	runhaskell Setup.hs build
+	runhaskell Setup.hs install
+
+Configure with -fUseInstalledOmega if you have already installed the C++
+Omega library.  Otherwise, the library will be built and linked into this
+package.
+
+GHCi is not supported due to dynamic loading problems.
+
+Because this package contains C++ source code, Cabal may need help
+finding the required headers and libraries.  You may need to provide the paths
+to the C++ include directory (contains STL headers such as "vector") and
+library directory (contains the C runtime library, called "libstdc++.so" on
+GNU Linux systems).  If the C++ Omega library is not installed in a standard
+place, you will also need to provide paths to it.
+
+A configuration might look something like this:
+
+	runhaskell Setup.hs configure --disable-library-for-ghci -p \
+		--extra-include-dirs=$(YOUR_CXX_INCLUDE_PATH) \
+		--extra-lib-dirs=$(YOUR_CXX_LIB_PATH)
+
+DOCUMENTATION
+-------------
+
+The C++ Omega library includes documentation of its exported interface in
+'interface.dvi'.  You may wish to look there if the Haddock documentation for
+a set operation or relation operation is lacking.
+

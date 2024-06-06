@@ -1,0 +1,71 @@
+
+# Programs
+CXX=@CXX@
+TAR=tar
+
+# Program parameters
+CPPFLAGS=@CPPFLAGS@
+CXXFLAGS=@CXXFLAGS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+
+# Configure flags
+USE_INSTALLED_OMEGA=@ac_with_omega@
+
+INCLUDES=src/C_omega.h
+OMEGA_DIR=src/the-omega-project
+OMEGA_LIB=$(OMEGA_DIR)/omega_lib/obj/libomega.a
+OMEGA_MAKE_FLAGS= \
+	CONFIGURE_CXXFLAGS="$(CPPFLAGS) $(CXXFLAGS)" \
+	CONFIGURE_LDFLAGS="$(LDFLAGS)" \
+	CONFIGURE_LIBS="$(LIBS)" \
+	CONFIGURE_CXX="$(CXX)"
+
+# If we're building the Omega library, then include its headers
+ifeq ($(USE_INSTALLED_OMEGA),yes)
+OMEGA_INCLUDE=
+else
+OMEGA_INCLUDE=-I$(OMEGA_DIR)/basic/include -I$(OMEGA_DIR)/omega_lib/include
+endif
+
+# If we're building the Omega library, then add it as a target
+# our interface file
+ifeq ($(USE_INSTALLED_OMEGA),yes)
+BUILD_OMEGA_TARGET=
+BUILD_OMEGA_DEP=
+else
+BUILD_OMEGA_TARGET=$(OMEGA_DIR) $(OMEGA_LIB)
+BUILD_OMEGA_DEP=$(OMEGA_DIR)
+endif
+
+##
+## RULES
+##
+
+.PHONY: all clean
+
+all : $(BUILD_OMEGA_TARGET) build/C_omega.o
+
+clean :
+	@echo Making clean...
+ifeq ($(USE_INSTALLED_OMEGA),no)
+	rm -rf $(OMEGA_DIR)
+endif
+
+#	The above is a more drastic way to clean than
+#	cd src && $(MAKE) veryclean $(OMEGA_MAKE_FLAGS)
+
+build :
+	mkdir $@
+
+build/C_omega.o : src/C_omega.cc build $(INCLUDES) $(BUILD_OMEGA_DEP)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OMEGA_INCLUDE) -c $< -o $@
+
+$(OMEGA_DIR) :
+	cd src && \
+	  $(TAR) -xzf the-omega-project.tar.gz
+
+$(OMEGA_LIB) : $(OMEGA_DIR)
+	cd $(OMEGA_DIR) && \
+	  $(MAKE) depend $(OMEGA_MAKE_FLAGS) && \
+	  $(MAKE) libomega.a $(OMEGA_MAKE_FLAGS)
